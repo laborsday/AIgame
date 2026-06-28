@@ -1,0 +1,296 @@
+/* ================================================================
+   技能五子棋 — 沙雕风格 CSS
+   ================================================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+
+body {
+    font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    /* 沙雕背景：亮眼到爆炸的渐变 + 表情符号水印 */
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 40px,
+            rgba(255, 215, 0, 0.04) 40px,
+            rgba(255, 215, 0, 0.04) 80px
+        ),
+        linear-gradient(135deg, #fuchsia 0%, #ff6b6b 20%, #feca57 40%, #54a0ff 60%, #5f27cd 80%, #ff9ff3 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 10px 30px;
+    animation: bgShift 20s ease-in-out infinite;
+    background-size: 200% 200%;
+}
+
+@keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+}
+
+/* --- Title --- */
+h1 {
+    font-size: 2.8em;
+    font-weight: 900;
+    color: #fff;
+    text-shadow:
+        3px 3px 0 #ff6b6b,
+        6px 6px 0 #feca57,
+        9px 9px 0 #54a0ff,
+        4px 4px 15px rgba(0,0,0,0.4);
+    margin-bottom: 4px;
+    letter-spacing: 4px;
+    animation: titleBounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes titleBounce {
+    from { transform: translateY(0) rotate(-1deg); }
+    to { transform: translateY(-8px) rotate(1deg); }
+}
+
+.subtitle {
+    color: #fff;
+    font-size: 1em;
+    opacity: 0.9;
+    margin-bottom: 12px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+/* --- Control Bar --- */
+.control-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 12px 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.control-bar label {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+.control-bar select {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 1em;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    font-family: inherit;
+}
+
+.control-bar select option {
+    background: #333;
+    color: #fff;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1.05em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 1px;
+}
+
+.btn-new-game {
+    background: linear-gradient(135deg, #ff6b6b, #feca57);
+    color: #fff;
+    font-size: 1.2em;
+    box-shadow: 0 4px 15px rgba(255,107,107,0.5);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.btn-new-game:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 25px rgba(255,107,107,0.7);
+}
+
+.btn-hint {
+    background: linear-gradient(135deg, #54a0ff, #5f27cd);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(84,160,255,0.5);
+}
+
+.btn-hint:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 25px rgba(84,160,255,0.7);
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(255,107,107,0.5); }
+    50% { box-shadow: 0 4px 30px rgba(255,107,107,0.9); }
+}
+
+/* --- Status Message --- */
+#status-message {
+    color: #fff;
+    font-size: 1.2em;
+    font-weight: 700;
+    text-align: center;
+    min-height: 40px;
+    line-height: 40px;
+    margin: 4px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    transition: all 0.3s;
+}
+
+/* --- Info row: who am I --- */
+.info-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 0.95em;
+    color: #fff;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.player-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.3);
+}
+
+.stone-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+.stone-icon.black { background: radial-gradient(circle at 35% 35%, #555, #111); }
+.stone-icon.white { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+
+/* --- Canvas Container --- */
+.canvas-container {
+    position: relative;
+    background: rgba(0,0,0,0.25);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.4),
+        inset 0 0 20px rgba(255,255,255,0.05);
+    border: 3px solid rgba(255,255,255,0.2);
+}
+
+canvas {
+    display: block;
+    border-radius: 8px;
+    cursor: pointer;
+    /* The board wood texture is drawn on canvas */
+}
+
+/* --- Win/Lose Overlay --- */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.overlay.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.overlay-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 3px solid #feca57;
+    border-radius: 24px;
+    padding: 40px 50px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.3); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.overlay-emoji {
+    font-size: 5em;
+    animation: emojiSpin 0.6s ease-out;
+}
+
+@keyframes emojiSpin {
+    from { transform: rotate(-180deg) scale(0); }
+    to { transform: rotate(0) scale(1); }
+}
+
+.overlay-title {
+    font-size: 2em;
+    font-weight: 900;
+    color: #feca57;
+    margin: 10px 0;
+}
+
+.overlay-message {
+    font-size: 1.3em;
+    color: #fff;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.overlay .btn {
+    font-size: 1.3em;
+    padding: 14px 36px;
+}
+
+/* --- Particle Canvas (for win confetti) --- */
+#confetti-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 200;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 600px) {
+    h1 { font-size: 1.6em; }
+    .control-bar { gap: 6px; padding: 8px 12px; }
+    .btn { padding: 8px 16px; font-size: 0.9em; }
+    .canvas-container { padding: 4px; }
+}
