@@ -35,6 +35,8 @@
     let hoverPos = null;         // {row, col} where mouse is hovering
     let stoneScale = 1.0;        // animation: current scale of last-placed stone
     let animFrameId = null;
+    let hoverDrawPending = false;
+    let clickLocked = false;  // prevent double-clicks
 
     // Layout computed values
     let cellSize, padding, boardPixelSize;
@@ -266,6 +268,7 @@
     canvas.addEventListener("click", function (e) {
         if (gameOver) return;
         if (currentTurn !== humanColor) return;
+        if (clickLocked) return;  // debounce
 
         const rect = canvas.getBoundingClientRect();
         const scaleX = boardPixelSize / rect.width;
@@ -301,7 +304,14 @@
         } else {
             hoverPos = null;
         }
-        draw();
+        // Throttle redraw — skip if already pending via RAF
+        if (!hoverDrawPending) {
+            hoverDrawPending = true;
+            requestAnimationFrame(() => {
+                draw();
+                hoverDrawPending = false;
+            });
+        }
     });
 
     canvas.addEventListener("mouseleave", function () {
@@ -312,7 +322,8 @@
     // ── API calls ──────────────────────────────────────────────
     async function makeMove(row, col) {
         try {
-            statusEl.textContent = "AI 正在思考人生...🤔";
+            clickLocked = true;
+            statusEl.textContent = "AI 正在思考...";
             currentTurn = 0; // lock board
 
             const resp = await fetch("/api/move", {
@@ -365,9 +376,11 @@
             }
 
             draw();
+            clickLocked = false;
         } catch (err) {
-            statusEl.textContent = "❌ 网络错误，请刷新页面";
+            statusEl.textContent = "网络错误，请刷新页面";
             currentTurn = humanColor;
+            clickLocked = false;
         }
     }
 
