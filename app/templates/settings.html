@@ -17,9 +17,9 @@
         <div class="settings-card">
             <label class="settings-label" for="difficulty">AI 难度</label>
             <select id="difficulty" class="settings-select">
-                <option value="easy">简单 (AI 放水)</option>
-                <option value="medium" selected>中等 (势均力敌)</option>
-                <option value="hard">困难 (AI 不讲武德)</option>
+                <option value="easy" {% if difficulty == 'easy' %}selected{% endif %}>简单 (AI 放水)</option>
+                <option value="medium" {% if difficulty == 'medium' or not difficulty %}selected{% endif %}>中等 (势均力敌)</option>
+                <option value="hard" {% if difficulty == 'hard' %}selected{% endif %}>困难 (AI 不讲武德)</option>
             </select>
 
             <div class="settings-buttons">

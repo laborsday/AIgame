@@ -67,7 +67,8 @@ def game():
 @bp.route("/settings")
 def settings():
     """Render the settings page."""
-    return render_template("settings.html")
+    difficulty = session.get("difficulty", "medium")
+    return render_template("settings.html", difficulty=difficulty)
 
 
 @bp.route("/api/save_settings", methods=["POST"])
