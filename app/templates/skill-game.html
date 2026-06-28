@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能五子棋 — 技能模式</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="skill-body">
+    <!-- Background decorations -->
+    <div class="cards-layer" id="cards-layer"></div>
+    <canvas id="robot-canvas" width="160" height="160"></canvas>
+
+    <!-- Skill mode wrapper -->
+    <div class="skill-wrapper">
+        <!-- Left panel -->
+        <div class="skill-left">
+            <!-- AI info -->
+            <div class="skill-player ai-side">
+                <div class="skill-name">🤖 AI</div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="ai-hp-fill"></div>
+                    <span class="hp-text" id="ai-hp-text">5/5</span>
+                </div>
+                <div class="hand-row" id="ai-hand">
+                    <div class="card-slot card-back"></div>
+                    <div class="card-slot card-back"></div>
+                    <div class="card-slot card-back"></div>
+                </div>
+            </div>
+
+            <!-- Play area (middle) -->
+            <div class="skill-play-area" id="skill-play-area">
+                <div class="play-area-label">出牌区</div>
+                <div id="skill-active-msg" class="skill-active-msg"></div>
+            </div>
+
+            <!-- Human info -->
+            <div class="skill-player human-side">
+                <div class="hand-row" id="human-hand">
+                    <div class="card-slot card-empty" data-slot="0"></div>
+                    <div class="card-slot card-empty" data-slot="1"></div>
+                    <div class="card-slot card-empty" data-slot="2"></div>
+                </div>
+                <div class="skill-name" id="human-name">你</div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="human-hp-fill"></div>
+                    <span class="hp-text" id="human-hp-text">5/5</span>
+                </div>
+                <div class="turn-badge" id="turn-badge"></div>
+            </div>
+        </div>
+
+        <!-- Right panel: board -->
+        <div class="skill-right">
+            <div class="skill-control-bar">
+                <button class="btn btn-new-game" id="btn-new-game">新游戏</button>
+                <button class="btn btn-hint" id="btn-hint">提示</button>
+                <a href="/" class="btn btn-back">返回</a>
+            </div>
+            <div id="status-message">点击「新游戏」开始！</div>
+            <div class="canvas-container">
+                <canvas id="board-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win/Lose overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-card">
+            <div class="overlay-emoji" id="overlay-emoji"></div>
+            <div class="overlay-title" id="overlay-title"></div>
+            <div class="overlay-message" id="overlay-message"></div>
+            <button class="btn btn-new-game" onclick="SkillGame.newGame()">再来一局</button>
+        </div>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        window.__SOUND_ENABLED__ = {{ 'true' if sound_on else 'false' }};
+    </script>
+    <script src="{{ url_for('static', filename='js/bg-effects.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/skill-game.js') }}"></script>
+</body>
+</html>

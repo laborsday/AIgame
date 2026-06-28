@@ -6,6 +6,13 @@ from flask import Blueprint, jsonify, render_template, request, session
 from app.game.board import Board, EMPTY, BLACK, WHITE, BOARD_SIZE
 from app.game.rules import Rules
 from app.game.ai import AIPlayer
+from app.game.skill_rules import (
+    Skill,
+    SkillGameState,
+    SKILL_NAMES,
+    SKILL_EMOJI,
+    MAX_HP,
+)
 
 bp = Blueprint("main", __name__)
 
@@ -333,3 +340,274 @@ def _random_turn_message() -> str:
         "你的回合！AI 说它让你三招 😏",
     ]
     return random.choice(messages)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Skill mode routes
+# ═══════════════════════════════════════════════════════════════
+
+
+def _get_skill_state():
+    """Reconstruct SkillGameState from session."""
+    if "skill_state" not in session:
+        return None
+    data = session["skill_state"]
+    gs = SkillGameState(
+        human_color=data["human_color"],
+        difficulty=data.get("difficulty", "medium"),
+    )
+    board_data = data["board"]
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            gs.board.grid[r][c] = board_data[r][c]
+    gs.board.move_count = sum(
+        1 for r in range(BOARD_SIZE) for c in range(BOARD_SIZE) if board_data[r][c] != EMPTY
+    )
+    gs.current_turn = data["current_turn"]
+    gs.game_over = data["game_over"]
+    gs.winner = data["winner"]
+    gs.human_hp = data["human_hp"]
+    gs.ai_hp = data["ai_hp"]
+    gs.human_hand = [Skill(s) for s in data["human_hand"]]
+    gs.ai_hand = [Skill(s) for s in data["ai_hand"]]
+    gs.human_fives = [set(tuple(st) for st in f) for f in data.get("human_fives", [])]
+    gs.ai_fives = [set(tuple(st) for st in f) for f in data.get("ai_fives", [])]
+    gs.human_frozen = data.get("human_frozen", False)
+    gs.ai_frozen = data.get("ai_frozen", False)
+    gs.turn_number = data.get("turn_number", 0)
+    gs.last_human_move = tuple(data["last_human_move"]) if data.get("last_human_move") else None
+    gs.last_ai_move = tuple(data["last_ai_move"]) if data.get("last_ai_move") else None
+    return gs
+
+
+def _save_skill_state(gs):
+    """Persist skill game state to session."""
+    session["skill_state"] = {
+        "board": gs.board.get_state(),
+        "human_color": gs.human_color,
+        "ai_color": gs.ai_color,
+        "current_turn": gs.current_turn,
+        "game_over": gs.game_over,
+        "winner": gs.winner,
+        "human_hp": gs.human_hp,
+        "ai_hp": gs.ai_hp,
+        "human_hand": [s.value for s in gs.human_hand],
+        "ai_hand": [s.value for s in gs.ai_hand],
+        "human_fives": [[list(st) for st in gs.human_fives]],
+        "ai_fives": [[list(st) for st in gs.ai_fives]],
+        "human_frozen": gs.human_frozen,
+        "ai_frozen": gs.ai_frozen,
+        "turn_number": gs.turn_number,
+        "difficulty": gs.difficulty,
+        "last_human_move": list(gs.last_human_move) if gs.last_human_move else None,
+        "last_ai_move": list(gs.last_ai_move) if gs.last_ai_move else None,
+    }
+
+
+@bp.route("/skill-game")
+def skill_game():
+    """Render the skill-mode game page."""
+    sound_on = session.get("sound_on", True)
+    return render_template("skill-game.html", sound_on=sound_on)
+
+
+@bp.route("/api/skill_new_game", methods=["POST"])
+def skill_new_game():
+    """Start a new skill-mode game."""
+    difficulty = session.get("difficulty", "medium")
+    human_color = random.choice([BLACK, WHITE])
+
+    gs = SkillGameState(human_color=human_color, difficulty=difficulty)
+    _save_skill_state(gs)
+
+    response = gs.to_dict()
+    response["message"] = "技能模式开战！第5回合开始发技能卡！"
+
+    # AI goes first?
+    if gs.ai_color == BLACK:
+        gs.turn_number += 1
+        gs.apply_bleed()
+        gs.grant_skills()
+        ai = AIPlayer(player_color=gs.ai_color, difficulty=difficulty)
+        move = ai.compute_move(gs.board)
+        gs.board.place_stone(move[0], move[1], gs.ai_color)
+        gs.last_ai_move = move
+        gs.current_turn = WHITE
+        gs.update_fives()
+        _save_skill_state(gs)
+        response = gs.to_dict()
+        response["message"] = "AI 先手落子，轮到你了！"
+
+    return jsonify(response)
+
+
+@bp.route("/api/skill_move", methods=["POST"])
+def skill_move():
+    """Human makes a move in skill mode."""
+    gs = _get_skill_state()
+    if not gs:
+        return jsonify({"error": "没有进行中的游戏"}), 400
+    if gs.game_over:
+        return jsonify({"error": "游戏已结束"}), 400
+
+    data = request.get_json(silent=True) or {}
+    row = data.get("row")
+    col = data.get("col")
+
+    if row is None or col is None:
+        return jsonify({"error": "参数缺失"}), 400
+    if not (0 <= row < BOARD_SIZE and 0 <= col < BOARD_SIZE):
+        return jsonify({"error": "坐标超出范围"}), 400
+    if gs.current_turn != gs.human_color:
+        return jsonify({"error": "现在不是你的回合"}), 400
+    if not gs.board.is_valid_move(row, col):
+        return jsonify({"error": "此处已有棋子"}), 400
+
+    # Check frozen
+    if gs.human_frozen:
+        gs.human_frozen = False
+        gs.current_turn = gs.ai_color
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": "你被冻住了！跳过此回合 ❄️"})
+
+    # Human move
+    gs.board.place_stone(row, col, gs.human_color)
+    gs.last_human_move = (row, col)
+    gs.update_fives()
+
+    if gs.check_game_over():
+        _save_skill_state(gs)
+        msg = "你赢了！" if gs.winner == 1 else "你输了..."
+        return jsonify({**gs.to_dict(), "message": msg, "status": _win_status(gs.winner)})
+
+    # Switch to AI
+    gs.current_turn = gs.ai_color
+    gs.turn_number += 1
+    gs.apply_bleed()
+
+    if gs.check_game_over():
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": "AI 扣血过多，你赢了！", "status": "human_wins"})
+
+    gs.grant_skills()
+    _save_skill_state(gs)
+
+    # AI frozen?
+    if gs.ai_frozen:
+        gs.ai_frozen = False
+        gs.current_turn = gs.human_color
+        gs.turn_number += 1
+        gs.apply_bleed()
+        if gs.check_game_over():
+            _save_skill_state(gs)
+            return jsonify({**gs.to_dict(), "message": "你扣血过多...", "status": "ai_wins"})
+        gs.grant_skills()
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": "AI 被冻住了！再次轮到你了 ❄️", "status": "playing"})
+
+    # AI move
+    difficulty = session.get("difficulty", "medium")
+    ai = AIPlayer(player_color=gs.ai_color, difficulty=difficulty)
+    move = ai.compute_move(gs.board)
+    gs.board.place_stone(move[0], move[1], gs.ai_color)
+    gs.last_ai_move = move
+    gs.update_fives()
+
+    if gs.check_game_over():
+        gs.current_turn = 0
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": "AI 五连扣血，你输了！", "status": "ai_wins"})
+
+    gs.current_turn = gs.human_color
+    gs.turn_number += 1
+    gs.apply_bleed()
+    if gs.check_game_over():
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": "你扣血过多...", "status": "ai_wins"})
+
+    gs.grant_skills()
+    _save_skill_state(gs)
+    notifications = ""
+    if len(gs.human_hand) >= MAX_HAND_SIZE:
+        notifications = " (手牌已满)"
+    return jsonify(
+        {**gs.to_dict(), "message": f"回合 #{gs.turn_number}{notifications}", "status": "playing"}
+    )
+
+
+@bp.route("/api/use_skill", methods=["POST"])
+def use_skill():
+    """Use a skill card."""
+    gs = _get_skill_state()
+    if not gs:
+        return jsonify({"error": "没有进行中的游戏"}), 400
+
+    data = request.get_json(silent=True) or {}
+    skill_str = data.get("skill")
+    row = data.get("row")
+    col = data.get("col")
+
+    try:
+        skill = Skill(skill_str)
+    except (ValueError, TypeError):
+        return jsonify({"error": "无效的技能"}), 400
+
+    if skill not in gs.human_hand:
+        return jsonify({"error": "你没有这张技能卡"}), 400
+    gs.human_hand.remove(skill)
+
+    msg = ""
+    if skill == Skill.FEI_SHA_ZOU_SHI:
+        if row is None or col is None:
+            gs.human_hand.append(skill)
+            return jsonify({"error": "飞沙走石需要点击棋盘上的对方棋子"}), 400
+        ok = gs.use_skill_fei_sha(row, col, gs.human_color)
+        if not ok:
+            gs.human_hand.append(skill)
+            return jsonify({"error": "目标不是对方棋子"}), 400
+        msg = "飞沙走石！移除了对方的棋子"
+
+    elif skill == Skill.TOU_TIAN_HUAN_RI:
+        if row is None or col is None:
+            gs.human_hand.append(skill)
+            return jsonify({"error": "偷天换日需要点击棋盘上的对方棋子"}), 400
+        ok = gs.use_skill_tou_tian(row, col, gs.human_color)
+        if not ok:
+            gs.human_hand.append(skill)
+            return jsonify({"error": "目标不是对方棋子"}), 400
+        msg = "偷天换日！对方的棋子变成你的了"
+
+    elif skill == Skill.WU_XIE_KE_JI:
+        gs.human_hand.append(skill)
+        return jsonify({"error": "无懈可击只能在对方使用技能时触发"}), 400
+
+    elif skill == Skill.JING_RU_ZHI_SHUI:
+        gs.use_skill_jing_ru(target_is_human=False)
+        msg = "静如止水！AI 下回合跳过"
+
+    gs.update_fives()
+    if gs.check_game_over():
+        _save_skill_state(gs)
+        return jsonify({**gs.to_dict(), "message": msg, "status": _win_status(gs.winner)})
+
+    _save_skill_state(gs)
+    return jsonify({**gs.to_dict(), "message": msg, "status": "playing"})
+
+
+@bp.route("/api/skill_hint", methods=["POST"])
+def skill_hint():
+    """AI-suggested move for skill mode."""
+    gs = _get_skill_state()
+    if not gs or gs.game_over:
+        return jsonify({"error": "无法提供提示"}), 400
+    ai = AIPlayer(player_color=gs.human_color, difficulty="hard")
+    move = ai.compute_move(gs.board)
+    return jsonify({"row": move[0], "col": move[1]})
+
+
+def _win_status(winner):
+    if winner == 1:
+        return "human_wins"
+    elif winner == 2:
+        return "ai_wins"
+    return "draw"
