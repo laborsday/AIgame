@@ -9,7 +9,10 @@ from app.game.board import Board, EMPTY, BLACK, WHITE, BOARD_SIZE
 DIRECTIONS = [(0, 1), (1, 0), (1, 1), (1, -1)]
 
 # Difficulty → search depth mapping
-DIFFICULTY_DEPTH = {"easy": 1, "medium": 2, "hard": 3}
+DIFFICULTY_DEPTH = {"easy": 0, "medium": 2, "hard": 3}
+
+# Easy mode: probability of ignoring blocking and making a random move instead
+SANDBAG_CHANCE = {"easy": 0.40, "medium": 0.0, "hard": 0.0}
 
 
 class AIPlayer:
@@ -36,6 +39,10 @@ class AIPlayer:
 
         if len(candidates) == 1:
             return candidates[0]
+
+        # Sandbagging: easy mode AI deliberately makes random moves sometimes
+        if random.random() < SANDBAG_CHANCE.get(self.difficulty, 0):
+            return random.choice(candidates)
 
         best_move = candidates[0]
         best_score = float("-inf")
@@ -85,7 +92,7 @@ class AIPlayer:
         if winner == self.opponent_color:
             return -100_000_000 - depth  # prefer slower losses
 
-        if depth == 0 or board.is_full():
+        if depth <= 0 or board.is_full():
             return self._evaluate(board)
 
         candidates = self._generate_candidate_moves(board)

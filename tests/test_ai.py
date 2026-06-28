@@ -144,6 +144,6 @@ class TestAI:
 
     def test_difficulty_depth_mapping(self):
         """Verify the difficulty→depth mapping."""
-        assert DIFFICULTY_DEPTH["easy"] == 1
+        assert DIFFICULTY_DEPTH["easy"] == 0
         assert DIFFICULTY_DEPTH["medium"] == 2
         assert DIFFICULTY_DEPTH["hard"] == 3
