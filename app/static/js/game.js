@@ -323,8 +323,14 @@
     async function makeMove(row, col) {
         try {
             clickLocked = true;
-            statusEl.textContent = "AI 正在思考...";
             currentTurn = 0; // lock board
+
+            // ---- IMMEDIATELY draw human stone ----
+            boardData[row][col] = humanColor;
+            humanLastMove = { row, col };
+            lastMove = { row, col };
+            statusEl.textContent = "AI 正在思考...";
+            draw();
 
             const resp = await fetch("/api/move", {
                 method: "POST",
@@ -335,12 +341,18 @@
             const data = await resp.json();
 
             if (data.error) {
-                statusEl.textContent = "❌ " + data.error;
-                currentTurn = humanColor; // unlock
+                // Rollback — remove human stone from local board
+                boardData[row][col] = EMPTY;
+                humanLastMove = null;
+                lastMove = null;
+                statusEl.textContent = data.error;
+                currentTurn = humanColor;
+                draw();
+                clickLocked = false;
                 return;
             }
 
-            // Update state
+            // Update full state from server
             boardData = data.board;
             humanLastMove = data.human_move
                 ? { row: data.human_move[0], col: data.human_move[1] }
