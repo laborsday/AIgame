@@ -56,6 +56,9 @@
     <canvas id="confetti-canvas"></canvas>
 
     <script src="{{ url_for('static', filename='js/bg-effects.js') }}"></script>
+    <script>
+        window.__SOUND_ENABLED__ = {{ 'true' if sound_on else 'false' }};
+    </script>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

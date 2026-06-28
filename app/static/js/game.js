@@ -3,6 +3,120 @@
  * Canvas-based Gomoku board with sandiao (沙雕) style
  */
 
+// ═══════════════════════════════════════════════════════════════
+// Sound engine (Web Audio API)
+// ═══════════════════════════════════════════════════════════════
+const SoundFX = (function () {
+    let audioCtx = null;
+    let soundEnabled = true;
+    let placeSoundIndex = 0;
+    let placeSoundStepCount = 0;
+    const PLACE_SWITCH_EVERY = 4; // switch sound every 4 moves
+
+    function ctx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+    }
+
+    // ── place-stone sounds (rotating) ──────────────────────────
+    const placerSounds = [
+        // 0: crisp "tak"
+        function () {
+            const c = ctx(), t = c.currentTime;
+            const o = c.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(800, t);
+            const g = c.createGain(); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+            o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.08);
+        },
+        // 1: "ding"
+        function () {
+            const c = ctx(), t = c.currentTime;
+            const o = c.createOscillator(); o.type = "triangle"; o.frequency.setValueAtTime(1200, t);
+            const g = c.createGain(); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.15);
+        },
+        // 2: "pop"
+        function () {
+            const c = ctx(), t = c.currentTime;
+            const o = c.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(300, t); o.frequency.linearRampToValueAtTime(150, t + 0.1);
+            const g = c.createGain(); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.12);
+        },
+        // 3: "boing"
+        function () {
+            const c = ctx(), t = c.currentTime;
+            const o = c.createOscillator(); o.type = "square"; o.frequency.setValueAtTime(200, t); o.frequency.linearRampToValueAtTime(600, t + 0.08);
+            const g = c.createGain(); g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.15);
+        },
+        // 4: "tik"
+        function () {
+            const c = ctx(), t = c.currentTime;
+            const o = c.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(1000, t);
+            const g = c.createGain(); g.gain.setValueAtTime(0.2, t); g.gain.setValueAtTime(0, t + 0.05);
+            o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.05);
+        },
+    ];
+
+    function playPlace() {
+        if (!soundEnabled) return;
+        try {
+            placeSoundStepCount++;
+            if (placeSoundStepCount % PLACE_SWITCH_EVERY === 0) {
+                placeSoundIndex = (placeSoundIndex + 1) % placerSounds.length;
+            }
+            placerSounds[placeSoundIndex]();
+        } catch (_) { /* ignore audio errors */ }
+    }
+
+    // ── win melody ─────────────────────────────────────────────
+    function playWin() {
+        if (!soundEnabled) return;
+        try {
+            const c = ctx(), t = c.currentTime;
+            const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+            notes.forEach((freq, i) => {
+                const o = c.createOscillator(); o.type = "triangle";
+                o.frequency.setValueAtTime(freq, t + i * 0.15);
+                const g = c.createGain();
+                g.gain.setValueAtTime(0.2, t + i * 0.15);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.15 + 0.3);
+                o.connect(g); g.connect(c.destination);
+                o.start(t + i * 0.15); o.stop(t + i * 0.15 + 0.3);
+            });
+        } catch (_) {}
+    }
+
+    // ── lose sound (silly descending) ──────────────────────────
+    function playLose() {
+        if (!soundEnabled) return;
+        try {
+            const c = ctx(), t = c.currentTime;
+            const notes = [400, 350, 280, 180]; // descending bah-bah-bah-boo
+            notes.forEach((freq, i) => {
+                const o = c.createOscillator(); o.type = i === 3 ? "square" : "sawtooth";
+                o.frequency.setValueAtTime(freq, t + i * 0.2);
+                const g = c.createGain();
+                g.gain.setValueAtTime(0.15, t + i * 0.2);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.2 + 0.4);
+                o.connect(g); g.connect(c.destination);
+                o.start(t + i * 0.2); o.stop(t + i * 0.2 + 0.4);
+            });
+        } catch (_) {}
+    }
+
+    return {
+        playPlace,
+        playWin,
+        playLose,
+        setEnabled: function (v) { soundEnabled = v; },
+        isEnabled: function () { return soundEnabled; },
+    };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// Main game
+// ═══════════════════════════════════════════════════════════════
 (function () {
     "use strict";
 
@@ -329,6 +443,7 @@
             boardData[row][col] = humanColor;
             humanLastMove = { row, col };
             lastMove = { row, col };
+            SoundFX.playPlace();
             statusEl.textContent = "AI 正在思考...";
             draw();
 
@@ -366,12 +481,14 @@
                 gameOver = true;
                 currentTurn = 0;
                 statusEl.textContent = data.message;
+                SoundFX.playWin();
                 animateStone();
                 setTimeout(() => showOverlay("win", data.message), 600);
             } else if (data.status === "ai_wins") {
                 gameOver = true;
                 currentTurn = 0;
                 statusEl.textContent = data.message;
+                SoundFX.playLose();
                 animateStone();
                 setTimeout(() => showOverlay("lose", data.message), 600);
             } else if (data.status === "draw") {
@@ -629,6 +746,10 @@
     document.getElementById("btn-hint").addEventListener("click", askHint);
 
     // ── Init ───────────────────────────────────────────────────
+    // Read sound preference from the page (set by server)
+    if (window.__SOUND_ENABLED__ !== undefined) {
+        SoundFX.setEnabled(window.__SOUND_ENABLED__);
+    }
     resizeCanvas();
     // Auto-start a game
     setTimeout(newGame, 300);

@@ -22,6 +22,12 @@
                 <option value="hard" {% if difficulty == 'hard' %}selected{% endif %}>困难 (AI 不讲武德)</option>
             </select>
 
+            <label class="settings-label" for="sound-toggle">音效</label>
+            <select id="sound-toggle" class="settings-select">
+                <option value="on" {% if sound_on %}selected{% endif %}>开</option>
+                <option value="off" {% if not sound_on %}selected{% endif %}>关</option>
+            </select>
+
             <div class="settings-buttons">
                 <button class="btn btn-primary" id="btn-save">保存</button>
                 <a href="/" class="btn btn-secondary">返回</a>
@@ -34,15 +40,18 @@
     <script>
     document.getElementById('btn-save').addEventListener('click', async () => {
         const difficulty = document.getElementById('difficulty').value;
+        const soundOn = document.getElementById('sound-toggle').value === 'on';
         const resp = await fetch('/api/save_settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ difficulty }),
+            body: JSON.stringify({ difficulty, sound_on: soundOn }),
         });
         const data = await resp.json();
         if (data.ok) {
             const names = { easy: '简单', medium: '中等', hard: '困难' };
-            document.getElementById('settings-msg').textContent = '已保存！当前难度：' + names[data.difficulty];
+            document.getElementById('settings-msg').textContent =
+                '已保存！难度：' + names[data.difficulty] +
+                ' | 音效：' + (data.sound_on ? '开' : '关');
         }
     });
     </script>

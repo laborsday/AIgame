@@ -61,14 +61,16 @@ def index():
 @bp.route("/game")
 def game():
     """Render the game page."""
-    return render_template("game.html")
+    sound_on = session.get("sound_on", True)
+    return render_template("game.html", sound_on=sound_on)
 
 
 @bp.route("/settings")
 def settings():
     """Render the settings page."""
     difficulty = session.get("difficulty", "medium")
-    return render_template("settings.html", difficulty=difficulty)
+    sound_on = session.get("sound_on", True)
+    return render_template("settings.html", difficulty=difficulty, sound_on=sound_on)
 
 
 @bp.route("/api/save_settings", methods=["POST"])
@@ -79,7 +81,11 @@ def save_settings():
     if difficulty not in ("easy", "medium", "hard"):
         difficulty = "medium"
     session["difficulty"] = difficulty
-    return jsonify({"ok": True, "difficulty": difficulty})
+
+    sound_on = data.get("sound_on", True)
+    session["sound_on"] = sound_on
+
+    return jsonify({"ok": True, "difficulty": difficulty, "sound_on": sound_on})
 
 
 @bp.route("/api/new_game", methods=["POST"])
