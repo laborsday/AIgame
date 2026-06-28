@@ -54,15 +54,37 @@ def _get_game_state_dict(board: Board) -> dict:
 
 @bp.route("/")
 def index():
-    """Render the main game page."""
+    """Render the home / landing page."""
     return render_template("index.html")
+
+
+@bp.route("/game")
+def game():
+    """Render the game page."""
+    return render_template("game.html")
+
+
+@bp.route("/settings")
+def settings():
+    """Render the settings page."""
+    return render_template("settings.html")
+
+
+@bp.route("/api/save_settings", methods=["POST"])
+def save_settings():
+    """Save user settings to the session."""
+    data = request.get_json(silent=True) or {}
+    difficulty = data.get("difficulty", "medium")
+    if difficulty not in ("easy", "medium", "hard"):
+        difficulty = "medium"
+    session["difficulty"] = difficulty
+    return jsonify({"ok": True, "difficulty": difficulty})
 
 
 @bp.route("/api/new_game", methods=["POST"])
 def new_game():
-    """Start a new game with the given difficulty."""
-    data = request.get_json(silent=True) or {}
-    difficulty = data.get("difficulty", "medium")
+    """Start a new game using the difficulty stored in the session."""
+    difficulty = session.get("difficulty", "medium")
 
     # Randomly assign colours
     human_color = random.choice([BLACK, WHITE])

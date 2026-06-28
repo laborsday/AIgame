@@ -22,7 +22,6 @@
     const overlayMessage = document.getElementById("overlay-message");
     const confettiCanvas = document.getElementById("confetti-canvas");
     const confettiCtx = confettiCanvas.getContext("2d");
-    const difficultySelect = document.getElementById("difficulty");
 
     // ── State ──────────────────────────────────────────────────
     let boardData = [];           // 15x15, 0/1/2
@@ -82,25 +81,6 @@
         woodGrad.addColorStop(1, "#e6c97a");
         ctx.fillStyle = woodGrad;
         ctx.fillRect(0, 0, boardPixelSize, boardPixelSize);
-
-        // Add wood grain lines
-        ctx.save();
-        ctx.globalAlpha = 0.08;
-        for (let i = 0; i < 20; i++) {
-            const y = Math.random() * boardPixelSize;
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.quadraticCurveTo(
-                boardPixelSize / 2,
-                y + (Math.random() - 0.5) * 80,
-                boardPixelSize,
-                y + (Math.random() - 0.5) * 40
-            );
-            ctx.strokeStyle = Math.random() > 0.5 ? "#000" : "#fff";
-            ctx.lineWidth = Math.random() * 2 + 0.5;
-            ctx.stroke();
-        }
-        ctx.restore();
 
         // Grid lines
         ctx.strokeStyle = "#5d3a1a";
@@ -392,13 +372,10 @@
     }
 
     async function newGame() {
-        const difficulty = difficultySelect.value;
-
         try {
             const resp = await fetch("/api/new_game", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ difficulty }),
             });
 
             const data = await resp.json();
@@ -497,8 +474,8 @@
 
         humanIcon.className = "stone-icon " + (humanColor === BLACK ? "black" : "white");
         aiIcon.className = "stone-icon " + (aiColor === BLACK ? "black" : "white");
-        humanText.textContent = humanColor === BLACK ? "黑棋 ♠" : "白棋 ♡";
-        aiText.textContent = aiColor === BLACK ? "黑棋 ♠" : "白棋 ♡";
+        humanText.textContent = humanColor === BLACK ? "黑棋" : "白棋";
+        aiText.textContent = aiColor === BLACK ? "黑棋" : "白棋";
     }
 
     function updateTurnIndicator() {
@@ -506,9 +483,9 @@
         if (gameOver) {
             indicator.textContent = "";
         } else if (currentTurn === humanColor) {
-            indicator.textContent = "👈 该你了";
+            indicator.textContent = "— 该你了";
         } else {
-            indicator.textContent = "🤖 AI 思考中...";
+            indicator.textContent = "— AI 思考中...";
         }
     }
 

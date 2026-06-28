@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能五子棋 — 对局</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>🀄 技能五子棋</h1>
+
+    <!-- Control bar (no difficulty selector, no emoji) -->
+    <div class="control-bar">
+        <button class="btn btn-new-game" id="btn-new-game">新游戏</button>
+        <button class="btn btn-hint" id="btn-hint">提示</button>
+        <a href="/" class="btn btn-back">返回首页</a>
+    </div>
+
+    <!-- Info row (pure text + colour blocks, no emoji) -->
+    <div class="info-row">
+        <span class="player-badge">
+            你执 <span class="stone-icon" id="human-stone-icon"></span> <span id="human-color-text"></span>
+        </span>
+        <span class="player-badge">
+            AI执 <span class="stone-icon" id="ai-stone-icon"></span> <span id="ai-color-text"></span>
+        </span>
+        <span id="turn-indicator"></span>
+    </div>
+
+    <!-- Status -->
+    <div id="status-message">点击「新游戏」开始！</div>
+
+    <!-- Canvas board -->
+    <div class="canvas-container">
+        <canvas id="board-canvas"></canvas>
+    </div>
+
+    <!-- Win/Lose overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-card">
+            <div class="overlay-emoji" id="overlay-emoji"></div>
+            <div class="overlay-title" id="overlay-title"></div>
+            <div class="overlay-message" id="overlay-message"></div>
+            <button class="btn btn-new-game" onclick="game.newGame()">再来一局</button>
+        </div>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

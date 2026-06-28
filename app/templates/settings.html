@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 — 技能五子棋</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="home-body">
+    <div class="home-container">
+        <h1 class="home-title">⚙️ 设置</h1>
+
+        <div class="settings-card">
+            <label class="settings-label" for="difficulty">AI 难度</label>
+            <select id="difficulty" class="settings-select">
+                <option value="easy" {% if difficulty == 'easy' %}selected{% endif %}>🍼 简单 (AI 放水)</option>
+                <option value="medium" {% if difficulty == 'medium' %}selected{% endif %}>⚔️ 中等 (势均力敌)</option>
+                <option value="hard" {% if difficulty == 'hard' %}selected{% endif %}>💀 困难 (AI 不讲武德)</option>
+            </select>
+
+            <div class="settings-buttons">
+                <button class="btn btn-primary" id="btn-save">保存</button>
+                <a href="/" class="btn btn-secondary">返回</a>
+            </div>
+        </div>
+
+        <p id="settings-msg" class="settings-msg"></p>
+    </div>
+
+    <script>
+    document.getElementById('btn-save').addEventListener('click', async () => {
+        const difficulty = document.getElementById('difficulty').value;
+        const resp = await fetch('/api/save_settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ difficulty }),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            document.getElementById('settings-msg').textContent = '已保存！难度：' +
+                { easy: '简单', medium: '中等', hard: '困难' }[data.difficulty];
+        }
+    });
+    </script>
+</body>
+</html>

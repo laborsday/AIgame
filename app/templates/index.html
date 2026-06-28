@@ -3,58 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>技能五子棋 🀄</title>
+    <title>技能五子棋</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <h1>🀄 技能五子棋</h1>
-    <p class="subtitle">AI 人机对战 · 沙雕特供版</p>
-
-    <!-- Control bar -->
-    <div class="control-bar">
-        <label for="difficulty">🤖 难度：</label>
-        <select id="difficulty">
-            <option value="easy">🍼 简单 (AI 放水)</option>
-            <option value="medium" selected>⚔️ 中等 (势均力敌)</option>
-            <option value="hard">💀 困难 (AI 不讲武德)</option>
-        </select>
-
-        <button class="btn btn-new-game" id="btn-new-game">🎮 新游戏</button>
-        <button class="btn btn-hint" id="btn-hint">💡 提示</button>
-    </div>
-
-    <!-- Info row -->
-    <div class="info-row">
-        <span class="player-badge">
-            你执&#8203;<span class="stone-icon" id="human-stone-icon"></span>&#8203;<span id="human-color-text"></span>
-        </span>
-        <span class="player-badge">
-            AI执&#8203;<span class="stone-icon" id="ai-stone-icon"></span>&#8203;<span id="ai-color-text"></span>
-        </span>
-        <span id="turn-indicator"></span>
-    </div>
-
-    <!-- Status -->
-    <div id="status-message">点击「新游戏」开始！</div>
-
-    <!-- Canvas board -->
-    <div class="canvas-container">
-        <canvas id="board-canvas"></canvas>
-    </div>
-
-    <!-- Win/Lose overlay -->
-    <div class="overlay" id="overlay">
-        <div class="overlay-card">
-            <div class="overlay-emoji" id="overlay-emoji"></div>
-            <div class="overlay-title" id="overlay-title"></div>
-            <div class="overlay-message" id="overlay-message"></div>
-            <button class="btn btn-new-game" onclick="game.newGame()">🔄 再来一局</button>
+<body class="home-body">
+    <div class="home-container">
+        <h1 class="home-title">🀄 技能五子棋</h1>
+        <p class="home-subtitle">AI 人机对战 · 沙雕特供版</p>
+        <div class="home-buttons">
+            <a href="/game" class="btn btn-home btn-primary">开始游戏</a>
+            <a href="/settings" class="btn btn-home btn-secondary">设置</a>
         </div>
     </div>
-
-    <!-- Confetti canvas -->
-    <canvas id="confetti-canvas"></canvas>
-
-    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>
