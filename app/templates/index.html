@@ -6,14 +6,20 @@
     <title>技能五子棋</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="home-body">
+<body>
+    <!-- Background decorations -->
+    <div class="cards-layer" id="cards-layer"></div>
+    <canvas id="robot-canvas" width="160" height="160"></canvas>
+
     <div class="home-container">
-        <h1 class="home-title">🀄 技能五子棋</h1>
+        <h1 class="home-title">技能五子棋</h1>
         <p class="home-subtitle">AI 人机对战 · 沙雕特供版</p>
         <div class="home-buttons">
-            <a href="/game" class="btn btn-home btn-primary">开始游戏</a>
-            <a href="/settings" class="btn btn-home btn-secondary">设置</a>
+            <a href="/game" class="btn-home btn-primary">开始游戏</a>
+            <a href="/settings" class="btn-home btn-secondary">设置</a>
         </div>
     </div>
+
+    <script src="{{ url_for('static', filename='js/bg-effects.js') }}"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 /* ================================================================
-   技能五子棋 — 沙雕风格 CSS
+   技能五子棋 — 科幻沙雕风格 CSS
+   深蓝星空 + 霓虹配色 + 横版布局
    ================================================================ */
 
 /* --- Reset & Base --- */
@@ -11,34 +12,148 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
 
+/* --- Starfield background (shared by all pages) --- */
 body {
     font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-    /* 沙雕背景：亮眼到爆炸的渐变 + 表情符号水印 */
-    background:
-        repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 40px,
-            rgba(255, 215, 0, 0.04) 40px,
-            rgba(255, 215, 0, 0.04) 80px
-        ),
-        linear-gradient(135deg, #fuchsia 0%, #ff6b6b 20%, #feca57 40%, #54a0ff 60%, #5f27cd 80%, #ff9ff3 100%);
-    background-attachment: fixed;
+    background: #0a0a2e;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 10px 30px;
-    animation: bgShift 20s ease-in-out infinite;
-    background-size: 200% 200%;
+    padding: 20px;
+    overflow-x: hidden;
+    position: relative;
 }
 
-@keyframes bgShift {
-    0%, 100% { background-position: 0% 50%; }
-    25% { background-position: 100% 0%; }
-    50% { background-position: 100% 100%; }
-    75% { background-position: 0% 100%; }
+/* Star layer: CSS-only random dots */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        /* small stars */
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 40% 22%, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 55% 12%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 70% 18%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 15% 35%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 30% 45%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 50% 38%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 65% 50%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 80% 42%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 92% 35%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 8% 60%, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 22% 70%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 38% 65%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 48% 75%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 60% 68%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 75% 72%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 88% 65%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 95% 55%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 5% 82%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 18% 90%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 33% 85%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 52% 92%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 68% 88%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 82% 95%, rgba(255,255,255,0.4), transparent),
+        /* medium stars (2px) */
+        radial-gradient(2px 2px at 12% 28%, rgba(180,220,255,0.7), transparent),
+        radial-gradient(2px 2px at 35% 55%, rgba(180,220,255,0.5), transparent),
+        radial-gradient(2px 2px at 58% 30%, rgba(180,220,255,0.6), transparent),
+        radial-gradient(2px 2px at 77% 60%, rgba(180,220,255,0.4), transparent),
+        radial-gradient(2px 2px at 90% 78%, rgba(180,220,255,0.5), transparent),
+        radial-gradient(2px 2px at 20% 78%, rgba(180,220,255,0.6), transparent),
+        radial-gradient(2px 2px at 45% 18%, rgba(180,220,255,0.4), transparent),
+        radial-gradient(2px 2px at 72% 82%, rgba(180,220,255,0.5), transparent);
+}
+
+/* --- Floating particles (subtle) --- */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(3px 3px at 20% 30%, rgba(0,229,255,0.2), transparent 50px),
+        radial-gradient(2px 2px at 75% 20%, rgba(180,77,255,0.15), transparent 40px),
+        radial-gradient(3px 3px at 60% 70%, rgba(255,77,166,0.15), transparent 50px),
+        radial-gradient(2px 2px at 35% 80%, rgba(0,229,255,0.2), transparent 40px),
+        radial-gradient(3px 3px at 85% 50%, rgba(180,77,255,0.15), transparent 50px);
+    animation: particleDrift 30s linear infinite;
+}
+
+@keyframes particleDrift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(10px, -15px); }
+    50% { transform: translate(-5px, -25px); }
+    75% { transform: translate(-15px, -10px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* --- Broken cards (pseudo-elements on a dedicated layer) --- */
+.cards-layer {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+}
+
+.card-debris {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(180,77,255,0.5), rgba(0,229,255,0.5));
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    transform-origin: center;
+}
+
+.card-debris::after {
+    content: '';
+    position: absolute;
+    top: 15%; left: 20%; right: 20%; bottom: 15%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 60%);
+    border-radius: 2px;
+    animation: cardGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes cardGlow {
+    from { opacity: 0.4; }
+    to { opacity: 0.9; }
+}
+
+/* --- Scattered stones --- */
+.stone-debris {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+}
+
+.stone-debris.black {
+    background: radial-gradient(circle at 35% 35%, #555, #111);
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+
+.stone-debris.white {
+    background: radial-gradient(circle at 35% 35%, #fff, #aaa);
+    box-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+
+/* --- Robot canvas --- */
+#robot-canvas {
+    position: fixed;
+    bottom: 40px;
+    right: 60px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
 }
 
 /* --- Title --- */
@@ -47,67 +162,93 @@ h1 {
     font-weight: 900;
     color: #fff;
     text-shadow:
-        3px 3px 0 #ff6b6b,
-        6px 6px 0 #feca57,
-        9px 9px 0 #54a0ff,
-        4px 4px 15px rgba(0,0,0,0.4);
-    margin-bottom: 4px;
-    letter-spacing: 4px;
-    animation: titleBounce 1s ease-in-out infinite alternate;
+        0 0 20px rgba(0,229,255,0.6),
+        0 0 40px rgba(180,77,255,0.4),
+        0 0 80px rgba(0,229,255,0.3);
+    margin-bottom: 8px;
+    letter-spacing: 6px;
+    position: relative;
+    z-index: 1;
 }
 
-@keyframes titleBounce {
-    from { transform: translateY(0) rotate(-1deg); }
-    to { transform: translateY(-8px) rotate(1deg); }
+/* --- Home & Settings pages --- */
+.home-container {
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
-.subtitle {
-    color: #fff;
-    font-size: 1em;
-    opacity: 0.9;
-    margin-bottom: 12px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+.home-title {
+    font-size: 3em;
+    margin-bottom: 8px;
 }
 
-/* --- Control Bar --- */
-.control-bar {
+.home-subtitle {
+    color: rgba(255,255,255,0.7);
+    font-size: 1.1em;
+    margin-bottom: 40px;
+    text-shadow: 0 0 10px rgba(0,229,255,0.3);
+}
+
+.home-buttons {
     display: flex;
+    flex-direction: column;
+    gap: 16px;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
+}
+
+.btn-home {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    padding: 16px 32px;
+    font-size: 1.3em;
+    text-decoration: none;
+    text-align: center;
     border-radius: 16px;
-    padding: 12px 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-}
-
-.control-bar label {
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.95em;
-}
-
-.control-bar select {
-    padding: 8px 14px;
-    border-radius: 10px;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: rgba(0,0,0,0.3);
-    color: #fff;
-    font-size: 1em;
-    font-weight: 700;
     cursor: pointer;
-    outline: none;
     font-family: inherit;
+    font-weight: 700;
+    letter-spacing: 2px;
+    transition: all 0.3s;
 }
 
-.control-bar select option {
-    background: #333;
+/* --- Button styles --- */
+.btn-primary {
+    background: linear-gradient(135deg, #b44dff, #ff4da6);
     color: #fff;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 25px rgba(180,77,255,0.4), 0 0 50px rgba(255,77,166,0.2);
+    animation: neonPulse 2s ease-in-out infinite alternate;
 }
 
+.btn-primary:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 40px rgba(180,77,255,0.6), 0 0 70px rgba(255,77,166,0.4);
+    border-color: rgba(255,255,255,0.6);
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 2px solid rgba(0,229,255,0.4);
+    box-shadow: 0 0 15px rgba(0,229,255,0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(0,229,255,0.15);
+    box-shadow: 0 0 30px rgba(0,229,255,0.4);
+    border-color: rgba(0,229,255,0.7);
+}
+
+@keyframes neonPulse {
+    from { box-shadow: 0 0 25px rgba(180,77,255,0.4), 0 0 50px rgba(255,77,166,0.2); }
+    to { box-shadow: 0 0 35px rgba(180,77,255,0.6), 0 0 65px rgba(255,77,166,0.35); }
+}
+
+/* Generic btn base */
 .btn {
     padding: 10px 24px;
     border-radius: 12px;
@@ -120,96 +261,163 @@ h1 {
     letter-spacing: 1px;
 }
 
+/* Game page buttons */
 .btn-new-game {
-    background: linear-gradient(135deg, #ff6b6b, #feca57);
+    background: linear-gradient(135deg, #b44dff, #ff4da6);
     color: #fff;
-    font-size: 1.2em;
-    box-shadow: 0 4px 15px rgba(255,107,107,0.5);
-    animation: pulse 2s ease-in-out infinite;
+    font-size: 1.1em;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 20px rgba(180,77,255,0.4);
+    animation: neonPulse 2s ease-in-out infinite alternate;
 }
 
 .btn-new-game:hover {
-    transform: scale(1.08);
-    box-shadow: 0 6px 25px rgba(255,107,107,0.7);
+    transform: scale(1.06);
+    box-shadow: 0 0 35px rgba(180,77,255,0.6);
+    border-color: rgba(255,255,255,0.6);
 }
 
 .btn-hint {
-    background: linear-gradient(135deg, #54a0ff, #5f27cd);
+    background: linear-gradient(135deg, #00e5ff, #0077cc);
     color: #fff;
-    box-shadow: 0 4px 15px rgba(84,160,255,0.5);
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 20px rgba(0,229,255,0.4);
 }
 
 .btn-hint:hover {
-    transform: scale(1.08);
-    box-shadow: 0 6px 25px rgba(84,160,255,0.7);
+    transform: scale(1.06);
+    box-shadow: 0 0 35px rgba(0,229,255,0.6);
 }
 
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 4px 15px rgba(255,107,107,0.5); }
-    50% { box-shadow: 0 4px 30px rgba(255,107,107,0.9); }
-}
-
-/* --- Status Message --- */
-#status-message {
-    color: #fff;
-    font-size: 1.2em;
+.btn-back {
+    background: rgba(255,255,255,0.1);
+    color: #ccc;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.95em;
     font-weight: 700;
-    text-align: center;
-    min-height: 40px;
-    line-height: 40px;
-    margin: 4px 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    transition: all 0.3s;
+    transition: all 0.2s;
+    border: 2px solid rgba(255,255,255,0.2);
 }
 
-/* --- Info row: who am I --- */
+.btn-back:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border-color: rgba(255,255,255,0.5);
+}
+
+/* --- Game Layout: horizontal --- */
+.game-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    max-width: 960px;
+    width: 100%;
+    padding: 20px;
+    background: rgba(10,10,40,0.6);
+    border: 2px solid rgba(0,229,255,0.25);
+    border-radius: 20px;
+    box-shadow:
+        0 0 30px rgba(0,229,255,0.15),
+        0 0 60px rgba(180,77,255,0.1),
+        inset 0 0 30px rgba(0,229,255,0.05);
+}
+
+.game-left {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 200px;
+    padding-top: 10px;
+}
+
+.game-right {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- Control bar --- */
+.control-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* --- Info row --- */
 .info-row {
     display: flex;
-    gap: 20px;
-    align-items: center;
-    font-size: 0.95em;
+    flex-direction: column;
+    gap: 6px;
     color: #fff;
-    margin-bottom: 4px;
-    font-weight: 700;
+    font-size: 0.95em;
+    font-weight: 600;
+    opacity: 0.9;
 }
 
 .player-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    background: rgba(0,0,0,0.3);
+    padding: 4px 0;
 }
 
 .stone-icon {
     display: inline-block;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     vertical-align: middle;
+    flex-shrink: 0;
 }
 
-.stone-icon.black { background: radial-gradient(circle at 35% 35%, #555, #111); }
-.stone-icon.white { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+.stone-icon.black {
+    background: radial-gradient(circle at 35% 35%, #666, #111);
+    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+}
 
-/* --- Canvas Container --- */
+.stone-icon.white {
+    background: radial-gradient(circle at 35% 35%, #fff, #bbb);
+    box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
+#turn-indicator {
+    color: #00e5ff;
+    text-shadow: 0 0 8px rgba(0,229,255,0.4);
+}
+
+/* --- Status message --- */
+#status-message {
+    color: #fff;
+    font-size: 1.05em;
+    font-weight: 600;
+    min-height: 32px;
+    line-height: 32px;
+    text-shadow: 0 0 10px rgba(0,229,255,0.3);
+    opacity: 0.9;
+}
+
+/* --- Canvas container --- */
 .canvas-container {
     position: relative;
-    background: rgba(0,0,0,0.25);
-    border-radius: 20px;
-    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 16px;
+    padding: 8px;
+    border: 2px solid rgba(0,229,255,0.2);
     box-shadow:
-        0 10px 40px rgba(0,0,0,0.4),
-        inset 0 0 20px rgba(255,255,255,0.05);
-    border: 3px solid rgba(255,255,255,0.2);
+        0 0 25px rgba(0,229,255,0.15),
+        inset 0 0 15px rgba(0,0,0,0.3);
 }
 
-canvas {
+canvas#board-canvas {
     display: block;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    /* The board wood texture is drawn on canvas */
 }
 
 /* --- Win/Lose Overlay --- */
@@ -217,7 +425,7 @@ canvas {
     display: none;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.75);
     z-index: 100;
     flex-direction: column;
     align-items: center;
@@ -225,9 +433,7 @@ canvas {
     animation: fadeIn 0.3s ease-out;
 }
 
-.overlay.show {
-    display: flex;
-}
+.overlay.show { display: flex; }
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -235,12 +441,14 @@ canvas {
 }
 
 .overlay-card {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border: 3px solid #feca57;
+    background: linear-gradient(135deg, #1a1a4e, #0d0d2b);
+    border: 3px solid #00e5ff;
     border-radius: 24px;
     padding: 40px 50px;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    box-shadow:
+        0 0 40px rgba(0,229,255,0.3),
+        0 0 80px rgba(180,77,255,0.2);
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -262,8 +470,9 @@ canvas {
 .overlay-title {
     font-size: 2em;
     font-weight: 900;
-    color: #feca57;
+    color: #00e5ff;
     margin: 10px 0;
+    text-shadow: 0 0 20px rgba(0,229,255,0.5);
 }
 
 .overlay-message {
@@ -273,12 +482,7 @@ canvas {
     opacity: 0.9;
 }
 
-.overlay .btn {
-    font-size: 1.3em;
-    padding: 14px 36px;
-}
-
-/* --- Particle Canvas (for win confetti) --- */
+/* --- Confetti canvas --- */
 #confetti-canvas {
     position: fixed;
     top: 0; left: 0;
@@ -287,81 +491,18 @@ canvas {
     z-index: 200;
 }
 
-/* --- Home & Settings pages --- */
-.home-body {
-    justify-content: center;
-    padding: 30px 20px;
-}
-
-.home-container {
-    text-align: center;
-    max-width: 480px;
-    width: 100%;
-}
-
-.home-title {
-    font-size: 3em;
-    margin-bottom: 8px;
-}
-
-.home-subtitle {
-    color: #fff;
-    font-size: 1.1em;
-    opacity: 0.9;
-    margin-bottom: 40px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-}
-
-.home-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-}
-
-.btn-home {
-    display: block;
-    width: 100%;
-    max-width: 300px;
-    padding: 16px 32px;
-    font-size: 1.3em;
-    text-decoration: none;
-    text-align: center;
-    border-radius: 16px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #ff6b6b, #feca57);
-    color: #fff;
-    box-shadow: 0 6px 25px rgba(255,107,107,0.5);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-.btn-primary:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 32px rgba(255,107,107,0.7);
-}
-
-.btn-secondary {
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    border: 2px solid rgba(255,255,255,0.4);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.btn-secondary:hover {
-    background: rgba(255,255,255,0.35);
-    transform: scale(1.04);
-}
-
-/* Settings card */
+/* --- Settings page --- */
 .settings-card {
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(12px);
+    background: rgba(10,10,40,0.6);
+    backdrop-filter: blur(8px);
     border-radius: 20px;
     padding: 30px;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(0,229,255,0.25);
+    box-shadow:
+        0 0 30px rgba(0,229,255,0.15),
+        0 0 60px rgba(180,77,255,0.1);
     margin-bottom: 16px;
+    text-align: left;
 }
 
 .settings-label {
@@ -376,8 +517,8 @@ canvas {
     width: 100%;
     padding: 12px 16px;
     border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: rgba(0,0,0,0.35);
+    border: 2px solid rgba(0,229,255,0.4);
+    background: rgba(0,0,0,0.4);
     color: #fff;
     font-size: 1.1em;
     font-weight: 700;
@@ -387,8 +528,13 @@ canvas {
     margin-bottom: 24px;
 }
 
+.settings-select:focus {
+    border-color: #00e5ff;
+    box-shadow: 0 0 15px rgba(0,229,255,0.3);
+}
+
 .settings-select option {
-    background: #333;
+    background: #1a1a3e;
     color: #fff;
 }
 
@@ -398,35 +544,64 @@ canvas {
     justify-content: center;
 }
 
+.settings-buttons .btn {
+    font-size: 1.1em;
+    padding: 12px 28px;
+}
+
+.settings-buttons .btn-primary {
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.settings-buttons .btn-secondary {
+    border: 2px solid rgba(0,229,255,0.4);
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 12px;
+}
+
 .settings-msg {
-    color: #feca57;
+    color: #00e5ff;
     font-weight: 700;
     font-size: 1em;
     min-height: 24px;
+    margin-top: 12px;
+    text-shadow: 0 0 10px rgba(0,229,255,0.4);
 }
 
-/* Back button on game page */
-.btn-back {
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    text-decoration: none;
-    padding: 10px 24px;
-    border-radius: 12px;
-    font-size: 0.95em;
-    font-weight: 700;
-    transition: all 0.2s;
-}
+/* --- Mobile --- */
+@media (max-width: 750px) {
+    .game-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        padding: 14px;
+    }
 
-.btn-back:hover {
-    background: rgba(255,255,255,0.35);
-}
+    .game-left {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        min-width: 0;
+        padding-top: 0;
+    }
 
-/* --- Mobile Responsiveness --- */
-@media (max-width: 600px) {
-    h1 { font-size: 1.6em; }
-    .control-bar { gap: 6px; padding: 8px 12px; }
-    .btn { padding: 8px 16px; font-size: 0.9em; }
-    .canvas-container { padding: 4px; }
+    .info-row {
+        flex-direction: row;
+        gap: 12px;
+    }
+
+    h1 { font-size: 1.8em; }
     .home-title { font-size: 2.2em; }
     .btn-home { font-size: 1.1em; padding: 14px 24px; }
+    .btn { padding: 8px 16px; font-size: 0.9em; }
+    .canvas-container { padding: 4px; }
+
+    #robot-canvas {
+        bottom: 10px;
+        right: 10px;
+        width: 80px !important;
+        height: 80px !important;
+    }
 }

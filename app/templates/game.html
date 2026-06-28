@@ -7,32 +7,39 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>🀄 技能五子棋</h1>
+    <!-- Background decorations -->
+    <div class="cards-layer" id="cards-layer"></div>
+    <canvas id="robot-canvas" width="160" height="160"></canvas>
 
-    <!-- Control bar (no difficulty selector, no emoji) -->
-    <div class="control-bar">
-        <button class="btn btn-new-game" id="btn-new-game">新游戏</button>
-        <button class="btn btn-hint" id="btn-hint">提示</button>
-        <a href="/" class="btn btn-back">返回首页</a>
-    </div>
+    <!-- Game layout wrapper -->
+    <div class="game-wrapper">
+        <!-- Left panel: controls + info -->
+        <div class="game-left">
+            <div class="control-bar">
+                <button class="btn btn-new-game" id="btn-new-game">新游戏</button>
+                <button class="btn btn-hint" id="btn-hint">提示</button>
+                <a href="/" class="btn btn-back">返回</a>
+            </div>
 
-    <!-- Info row (pure text + colour blocks, no emoji) -->
-    <div class="info-row">
-        <span class="player-badge">
-            你执 <span class="stone-icon" id="human-stone-icon"></span> <span id="human-color-text"></span>
-        </span>
-        <span class="player-badge">
-            AI执 <span class="stone-icon" id="ai-stone-icon"></span> <span id="ai-color-text"></span>
-        </span>
-        <span id="turn-indicator"></span>
-    </div>
+            <div class="info-row">
+                <span class="player-badge">
+                    你执 <span class="stone-icon" id="human-stone-icon"></span> <span id="human-color-text"></span>
+                </span>
+                <span class="player-badge">
+                    AI执 <span class="stone-icon" id="ai-stone-icon"></span> <span id="ai-color-text"></span>
+                </span>
+                <span id="turn-indicator"></span>
+            </div>
 
-    <!-- Status -->
-    <div id="status-message">点击「新游戏」开始！</div>
+            <div id="status-message">点击「新游戏」开始！</div>
+        </div>
 
-    <!-- Canvas board -->
-    <div class="canvas-container">
-        <canvas id="board-canvas"></canvas>
+        <!-- Right panel: board -->
+        <div class="game-right">
+            <div class="canvas-container">
+                <canvas id="board-canvas"></canvas>
+            </div>
+        </div>
     </div>
 
     <!-- Win/Lose overlay -->
@@ -48,6 +55,7 @@
     <!-- Confetti canvas -->
     <canvas id="confetti-canvas"></canvas>
 
+    <script src="{{ url_for('static', filename='js/bg-effects.js') }}"></script>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>
