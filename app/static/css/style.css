@@ -660,7 +660,7 @@ canvas#board-canvas {
 }
 
 .card-slot {
-    width: 60px; height: 90px;
+    width: 75px; height: 90px;
     border-radius: 6px;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
@@ -712,13 +712,13 @@ canvas#board-canvas {
 
 /* Play area */
 .skill-play-area {
-    flex: 1 1 auto;
+    flex: 0 0 40%;
     background: rgba(255,255,255,0.04);
     border: 2px dashed rgba(255,255,255,0.12);
     border-radius: 12px;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .play-area-label {
