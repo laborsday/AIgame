@@ -254,10 +254,18 @@ def ai_decide_skill(gs: SkillGameState) -> tuple[Skill | None, int | None, int |
 
     # Collect all opponent stones with threat scores
     threats = []
+    # Build a set of stones in human fives (bleeding AI)
+    five_stones: set[tuple[int, int]] = set()
+    for f in gs.human_fives:
+        five_stones.update(f)
+
     for r in range(BOARD_SIZE):
         for c in range(BOARD_SIZE):
             ts = threat_score(r, c)
             if ts > 0:
+                # Stones in a five-in-a-row get massive priority
+                if (r, c) in five_stones:
+                    ts += 100
                 threats.append((r, c, ts))
 
     threats.sort(key=lambda x: -x[2])  # most threatening first
