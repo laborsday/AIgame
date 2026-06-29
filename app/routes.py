@@ -13,6 +13,7 @@ from app.game.skill_rules import (
     SKILL_EMOJI,
     MAX_HP,
     MAX_HAND_SIZE,
+    ai_decide_skill,
 )
 
 bp = Blueprint("main", __name__)
@@ -514,6 +515,24 @@ def skill_move():
     gs.last_ai_move = move
     gs.update_fives()
 
+    # ── AI uses a skill ──
+    ai_skill_msg = ""
+    ai_skill, sr, sc = ai_decide_skill(gs)
+    if ai_skill is not None:
+        if ai_skill == Skill.FEI_SHA_ZOU_SHI and sr is not None:
+            gs.use_skill_fei_sha(sr, sc, gs.ai_color)
+            gs.ai_hand.remove(Skill.FEI_SHA_ZOU_SHI)
+            ai_skill_msg = f" AI 使用了飞沙走石！"
+        elif ai_skill == Skill.TOU_TIAN_HUAN_RI and sr is not None:
+            gs.use_skill_tou_tian(sr, sc, gs.ai_color)
+            gs.ai_hand.remove(Skill.TOU_TIAN_HUAN_RI)
+            ai_skill_msg = f" AI 使用了偷天换日！"
+        elif ai_skill == Skill.JING_RU_ZHI_SHUI:
+            gs.use_skill_jing_ru(target_is_human=True)
+            gs.ai_hand.remove(Skill.JING_RU_ZHI_SHUI)
+            ai_skill_msg = f" AI 使用了静如止水！你被冻住了 ❄️"
+        gs.update_fives()
+
     if gs.check_game_over():
         gs.current_turn = 0
         _save_skill_state(gs)
@@ -532,7 +551,7 @@ def skill_move():
     if len(gs.human_hand) >= MAX_HAND_SIZE:
         notifications = " (手牌已满)"
     return jsonify(
-        {**gs.to_dict(), "message": f"回合 #{gs.turn_number}{notifications}", "status": "playing"}
+        {**gs.to_dict(), "message": f"回合 #{gs.turn_number}{ai_skill_msg}{notifications}", "status": "playing"}
     )
 
 

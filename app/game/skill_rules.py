@@ -208,3 +208,75 @@ class SkillGameState:
             self.human_frozen = True
         else:
             self.ai_frozen = True
+
+
+# ═══════════════════════════════════════════════════════════════
+# AI skill decision engine
+# ═══════════════════════════════════════════════════════════════
+
+def ai_decide_skill(gs: SkillGameState) -> tuple[Skill | None, int | None, int | None]:
+    """Decide which skill the AI should use and on which target.
+
+    Returns (skill, target_row, target_col) or (None, None, None).
+    """
+    difficulty = gs.difficulty
+
+    # Easy: never use skills
+    if difficulty == "easy":
+        return None, None, None
+
+    if not gs.ai_hand:
+        return None, None, None
+
+    opponent = gs.human_color
+    board = gs.board
+
+    # ── Find the most threatening human stone ──
+    # Priority: stones that are part of a 4-in-a-row first, then 3, then 2
+    def threat_score(row: int, col: int) -> int:
+        """Estimate how threatening a stone is to the AI."""
+        if board.grid[row][col] != opponent:
+            return -1
+        s = 0
+        dirs = [(0, 1), (1, 0), (1, 1), (1, -1)]
+        for dr, dc in dirs:
+            count = 1
+            # positive
+            r, c = row + dr, col + dc
+            while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board.grid[r][c] == opponent:
+                count += 1; r += dr; c += dc
+            # negative
+            r, c = row - dr, col - dc
+            while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board.grid[r][c] == opponent:
+                count += 1; r -= dr; c -= dc
+            s += count
+        return s
+
+    # Collect all opponent stones with threat scores
+    threats = []
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            ts = threat_score(r, c)
+            if ts > 0:
+                threats.append((r, c, ts))
+
+    threats.sort(key=lambda x: -x[2])  # most threatening first
+
+    # ── Decide skill ──
+    # Hard: can use any skill
+    # Medium: only feisha
+
+    # 1. feisha — remove most threatening stone
+    if Skill.FEI_SHA_ZOU_SHI in gs.ai_hand and threats:
+        return Skill.FEI_SHA_ZOU_SHI, threats[0][0], threats[0][1]
+
+    if difficulty in ("hard",):
+        # 2. toutian — convert most threatening stone to AI's
+        if Skill.TOU_TIAN_HUAN_RI in gs.ai_hand and threats:
+            return Skill.TOU_TIAN_HUAN_RI, threats[0][0], threats[0][1]
+
+        # 3. jingru — freeze human when they have strong threats
+        if Skill.JING_RU_ZHI_SHUI in gs.ai_hand and threats and threats[0][2] >= 4:
+            return Skill.JING_RU_ZHI_SHUI, None, None
+
+    return None, None, None
