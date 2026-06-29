@@ -379,6 +379,10 @@ def _get_skill_state():
     gs.turn_number = data.get("turn_number", 0)
     gs.last_human_move = tuple(data["last_human_move"]) if data.get("last_human_move") else None
     gs.last_ai_move = tuple(data["last_ai_move"]) if data.get("last_ai_move") else None
+    # Restore pending_skill
+    ps = data.get("pending_skill")
+    if ps:
+        gs.pending_skill = (Skill(ps[0]), ps[1], ps[2], ps[3])
     return gs
 
 
@@ -403,6 +407,10 @@ def _save_skill_state(gs):
         "difficulty": gs.difficulty,
         "last_human_move": list(gs.last_human_move) if gs.last_human_move else None,
         "last_ai_move": list(gs.last_ai_move) if gs.last_ai_move else None,
+        "pending_skill": (
+            (gs.pending_skill[0].value, gs.pending_skill[1], gs.pending_skill[2], gs.pending_skill[3])
+            if gs.pending_skill else None
+        ),
     }
 
 
@@ -515,23 +523,14 @@ def skill_move():
     gs.last_ai_move = move
     gs.update_fives()
 
-    # ── AI uses a skill ──
+    # ── AI uses a skill (set as pending for wuxie counter) ──
     ai_skill_msg = ""
     ai_skill, sr, sc = ai_decide_skill(gs)
     if ai_skill is not None:
-        if ai_skill == Skill.FEI_SHA_ZOU_SHI and sr is not None:
-            gs.use_skill_fei_sha(sr, sc, gs.ai_color)
-            gs.ai_hand.remove(Skill.FEI_SHA_ZOU_SHI)
-            ai_skill_msg = f" AI 使用了飞沙走石！"
-        elif ai_skill == Skill.TOU_TIAN_HUAN_RI and sr is not None:
-            gs.use_skill_tou_tian(sr, sc, gs.ai_color)
-            gs.ai_hand.remove(Skill.TOU_TIAN_HUAN_RI)
-            ai_skill_msg = f" AI 使用了偷天换日！"
-        elif ai_skill == Skill.JING_RU_ZHI_SHUI:
-            gs.use_skill_jing_ru(target_is_human=True)
-            gs.ai_hand.remove(Skill.JING_RU_ZHI_SHUI)
-            ai_skill_msg = f" AI 使用了静如止水！你被冻住了 ❄️"
-        gs.update_fives()
+        gs.pending_skill = (ai_skill, "ai", sr, sc)
+        ai_skill_msg = f" AI 准备使用 {SKILL_NAMES.get(ai_skill, '技能')}！5秒内可用无懈可击反击"
+    else:
+        gs.pending_skill = None
 
     if gs.check_game_over():
         gs.current_turn = 0
@@ -557,7 +556,7 @@ def skill_move():
 
 @bp.route("/api/use_skill", methods=["POST"])
 def use_skill():
-    """Use a skill card."""
+    """Step 1: declare skill use, set pending for possible wuxie counter."""
     gs = _get_skill_state()
     if not gs:
         return jsonify({"error": "没有进行中的游戏"}), 400
@@ -579,36 +578,66 @@ def use_skill():
     if gs.human_frozen:
         return jsonify({"error": "你被冻住了，本回合不能使用技能 ❄️"}), 400
 
-    gs.human_hand.remove(skill)
-
-    msg = ""
-    if skill == Skill.FEI_SHA_ZOU_SHI:
-        if row is None or col is None:
-            gs.human_hand.append(skill)
-            return jsonify({"error": "飞沙走石需要点击棋盘上的对方棋子"}), 400
-        ok = gs.use_skill_fei_sha(row, col, gs.human_color)
-        if not ok:
-            gs.human_hand.append(skill)
-            return jsonify({"error": "目标不是对方棋子"}), 400
-        msg = "飞沙走石！移除了对方的棋子"
-
-    elif skill == Skill.TOU_TIAN_HUAN_RI:
-        if row is None or col is None:
-            gs.human_hand.append(skill)
-            return jsonify({"error": "偷天换日需要点击棋盘上的对方棋子"}), 400
-        ok = gs.use_skill_tou_tian(row, col, gs.human_color)
-        if not ok:
-            gs.human_hand.append(skill)
-            return jsonify({"error": "目标不是对方棋子"}), 400
-        msg = "偷天换日！对方的棋子变成你的了"
-
-    elif skill == Skill.WU_XIE_KE_JI:
-        gs.human_hand.append(skill)
+    # Wuxie can't be used proactively
+    if skill == Skill.WU_XIE_KE_JI:
         return jsonify({"error": "无懈可击只能在对方使用技能时触发"}), 400
 
-    elif skill == Skill.JING_RU_ZHI_SHUI:
-        gs.use_skill_jing_ru(target_is_human=False)
-        msg = "静如止水！AI 下回合跳过"
+    # Validate target before setting pending
+    if skill == Skill.FEI_SHA_ZOU_SHI:
+        if row is None or col is None:
+            return jsonify({"error": "飞沙走石需要点击棋盘上的对方棋子"}), 400
+        if gs.board.grid[row][col] != (WHITE if gs.human_color == BLACK else BLACK):
+            return jsonify({"error": "目标不是对方棋子"}), 400
+    elif skill == Skill.TOU_TIAN_HUAN_RI:
+        if row is None or col is None:
+            return jsonify({"error": "偷天换日需要点击棋盘上的对方棋子"}), 400
+        if gs.board.grid[row][col] != (WHITE if gs.human_color == BLACK else BLACK):
+            return jsonify({"error": "目标不是对方棋子"}), 400
+
+    # Set pending
+    gs.pending_skill = (skill, "human", row, col)
+    _save_skill_state(gs)
+
+    return jsonify(
+        {**gs.to_dict(), "message": "等待对方反应...（5秒）", "status": "pending", "pending_timeout": 5}
+    )
+
+
+@bp.route("/api/skill_execute", methods=["POST"])
+def skill_execute():
+    """Step 2: execute the pending skill (called after timeout or skip)."""
+    gs = _get_skill_state()
+    if not gs or not gs.pending_skill:
+        return jsonify({"error": "没有待执行的技能"}), 400
+
+    skill, user, row, col = gs.pending_skill
+    gs.pending_skill = None
+
+    msg = ""
+    if user == "human":
+        # Human's skill executes
+        gs.human_hand.remove(skill)
+        if skill == Skill.FEI_SHA_ZOU_SHI:
+            gs.use_skill_fei_sha(row, col, gs.human_color)
+            msg = "飞沙走石！移除了对方的棋子"
+        elif skill == Skill.TOU_TIAN_HUAN_RI:
+            gs.use_skill_tou_tian(row, col, gs.human_color)
+            msg = "偷天换日！对方的棋子变成你的了"
+        elif skill == Skill.JING_RU_ZHI_SHUI:
+            gs.use_skill_jing_ru(target_is_human=False)
+            msg = "静如止水！AI 下回合跳过"
+    else:
+        # AI's skill executes
+        gs.ai_hand.remove(skill)
+        if skill == Skill.FEI_SHA_ZOU_SHI:
+            gs.use_skill_fei_sha(row, col, gs.ai_color)
+            msg = "AI 使用了飞沙走石！"
+        elif skill == Skill.TOU_TIAN_HUAN_RI:
+            gs.use_skill_tou_tian(row, col, gs.ai_color)
+            msg = "AI 使用了偷天换日！"
+        elif skill == Skill.JING_RU_ZHI_SHUI:
+            gs.use_skill_jing_ru(target_is_human=True)
+            msg = "AI 使用了静如止水！你被冻住了 ❄️"
 
     gs.update_fives()
     if gs.check_game_over():
@@ -617,6 +646,39 @@ def use_skill():
 
     _save_skill_state(gs)
     return jsonify({**gs.to_dict(), "message": msg, "status": "playing"})
+
+
+@bp.route("/api/counter_skill", methods=["POST"])
+def counter_skill():
+    """Use 无懈可击 to counter a pending skill."""
+    gs = _get_skill_state()
+    if not gs or not gs.pending_skill:
+        return jsonify({"error": "没有待反击的技能"}), 400
+
+    if Skill.WU_XIE_KE_JI not in gs.human_hand:
+        return jsonify({"error": "你没有无懈可击"}), 400
+
+    countered_skill, user, _row, _col = gs.pending_skill
+    gs.pending_skill = None
+
+    # If it was AI's skill, AI's card is refunded
+    if user == "ai":
+        # don't refund — AI already "spent" it mentally, just cancel
+        pass
+
+    gs.human_hand.remove(Skill.WU_XIE_KE_JI)
+    _save_skill_state(gs)
+
+    skill_name = SKILL_NAMES.get(countered_skill, "技能")
+    return jsonify(
+        {**gs.to_dict(), "message": f"无懈可击！抵消了 {skill_name} 🛡️", "status": "playing"}
+    )
+
+
+@bp.route("/api/skip_counter", methods=["POST"])
+def skip_counter():
+    """Skip the wuxie counter window — let pending skill execute."""
+    return skill_execute()
 
 
 @bp.route("/api/skill_hint", methods=["POST"])

@@ -61,6 +61,10 @@ class SkillGameState:
         self.human_hand: list[Skill] = []
         self.ai_hand: list[Skill] = []
 
+        # Pending skill (waiting for wuxie counter)
+        # (skill, user_is_human, target_row, target_col, timestamp)
+        self.pending_skill: tuple | None = None
+
         # Active five-in-a-rows (per player)
         self.human_fives: list[set[tuple[int, int]]] = []  # list of 5-stone sets
         self.ai_fives: list[set[tuple[int, int]]] = []
@@ -97,6 +101,8 @@ class SkillGameState:
             "ai_hand_count": len(self.ai_hand),
             "human_frozen": self.human_frozen,
             "ai_frozen": self.ai_frozen,
+            "pending_skill": self.pending_skill[0].value if self.pending_skill else None,
+            "pending_by_ai": self.pending_skill[1] == "ai" if self.pending_skill else False,
             "turn_number": self.turn_number,
             "last_human_move": list(self.last_human_move) if self.last_human_move else None,
             "last_ai_move": list(self.last_ai_move) if self.last_ai_move else None,

@@ -244,6 +244,18 @@ const SkillGame = (function () {
                 statusEl.textContent = data.message;
                 stoneScale = 1.0;
                 animateStone();
+                // If AI has a pending skill and human has no wuxie, auto-execute
+                if (data.pending_skill && data.pending_by_ai && !humanHand.includes("wuxie")) {
+                    setTimeout(async () => {
+                        const r2 = await fetch("/api/skill_execute", { method: "POST" });
+                        const d2 = await r2.json();
+                        updateState(d2);
+                        statusEl.textContent = d2.message;
+                        if (d2.status === "human_wins") endGame("win", d2.message);
+                        else if (d2.status === "ai_wins") endGame("lose", d2.message);
+                        draw();
+                    }, 5500);
+                }
             }
             draw();
             clickLocked = false;
@@ -291,6 +303,18 @@ const SkillGame = (function () {
             statusEl.textContent = data.message;
             if (data.status === "human_wins") endGame("win", data.message);
             else if (data.status === "ai_wins") endGame("lose", data.message);
+            else if (data.status === "pending") {
+                // Auto-execute after timeout
+                setTimeout(async () => {
+                    const r2 = await fetch("/api/skill_execute", { method: "POST" });
+                    const d2 = await r2.json();
+                    updateState(d2);
+                    statusEl.textContent = d2.message;
+                    if (d2.status === "human_wins") endGame("win", d2.message);
+                    else if (d2.status === "ai_wins") endGame("lose", d2.message);
+                    draw();
+                }, 5500);
+            }
             stoneScale = 1.0;
             draw();
         } catch(err) { statusEl.textContent = "技能使用失败"; }
@@ -317,6 +341,11 @@ const SkillGame = (function () {
         updateHP();
         updateHands();
         updateTurnBadge();
+
+        // Pending skill — show wuxie counter popup
+        if (data.pending_skill && data.pending_by_ai && humanHand.includes("wuxie")) {
+            showCounterPopup(data.pending_skill);
+        }
     }
 
     function updateHP() {
@@ -360,13 +389,51 @@ const SkillGame = (function () {
     }
 
     function activateSkill(skillKey) {
-        if (gameOver || currentTurn !== humanColor) return;
+        if (gameOver) return;
         if (humanFrozen) { statusEl.textContent = "你被冻住了，不能使用技能 ❄️"; return; }
+        // Check if this is a wuxie counter
+        if (skillKey === "wuxie") {
+            useWuxieCounter();
+            return;
+        }
+        if (currentTurn !== humanColor) return;
         if (skillMode === skillKey) { skillMode = null; document.getElementById("skill-active-msg").textContent = ""; return; }
         skillMode = skillKey;
         const info = SKILL_INFO[skillKey];
         document.getElementById("skill-active-msg").textContent = info.emoji + " " + info.name + "：" + info.desc;
         if (skillKey === "jingru") { useSkill("jingru"); skillMode = null; document.getElementById("skill-active-msg").textContent = ""; }
+    }
+
+    let counterTimer = null;
+
+    function showCounterPopup(skillKey) {
+        const info = SKILL_INFO[skillKey] || { name: skillKey, emoji: "?" };
+        const msg = `AI 准备使用 ${info.emoji} ${info.name}！是否使用无懈可击？`;
+        statusEl.textContent = msg;
+        document.getElementById("skill-active-msg").textContent = "🛡️ 点击无懈可击反击！（5秒后自动跳过）";
+
+        // Auto-skip after 5 seconds
+        if (counterTimer) clearTimeout(counterTimer);
+        counterTimer = setTimeout(async () => {
+            document.getElementById("skill-active-msg").textContent = "";
+            const r = await fetch("/api/skip_counter", { method: "POST" });
+            const d = await r.json();
+            updateState(d);
+            statusEl.textContent = d.message;
+            if (d.status === "human_wins") endGame("win", d.message);
+            else if (d.status === "ai_wins") endGame("lose", d.message);
+            draw();
+        }, 5000);
+    }
+
+    async function useWuxieCounter() {
+        if (counterTimer) clearTimeout(counterTimer);
+        document.getElementById("skill-active-msg").textContent = "";
+        const r = await fetch("/api/counter_skill", { method: "POST" });
+        const d = await r.json();
+        updateState(d);
+        statusEl.textContent = d.message;
+        draw();
     }
 
     function endGame(type, msg) {
