@@ -96,7 +96,7 @@ const SkillGame = (function () {
         const availH = window.innerHeight - 80;
         const maxSize = Math.max(280, Math.min(rightW, availH, 560));
         const dpr = window.devicePixelRatio || 1;
-        boardPixelSize = maxSize;
+        boardPixelSize = Math.max(300, maxSize);
         canvas.width = boardPixelSize * dpr;
         canvas.height = boardPixelSize * dpr;
         canvas.style.width = boardPixelSize + "px";
@@ -104,7 +104,7 @@ const SkillGame = (function () {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
         padding = boardPixelSize / (BOARD_SIZE + 1);
-        cellSize = (boardPixelSize - padding * 2) / (BOARD_SIZE - 1);
+        cellSize = Math.max(1, (boardPixelSize - padding * 2) / (BOARD_SIZE - 1));
         confettiCanvas.width = window.innerWidth;
         confettiCanvas.height = window.innerHeight;
         draw();
