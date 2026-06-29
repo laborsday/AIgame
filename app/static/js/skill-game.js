@@ -361,6 +361,7 @@ const SkillGame = (function () {
 
     function activateSkill(skillKey) {
         if (gameOver || currentTurn !== humanColor) return;
+        if (humanFrozen) { statusEl.textContent = "你被冻住了，不能使用技能 ❄️"; return; }
         if (skillMode === skillKey) { skillMode = null; document.getElementById("skill-active-msg").textContent = ""; return; }
         skillMode = skillKey;
         const info = SKILL_INFO[skillKey];

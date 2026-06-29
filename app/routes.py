@@ -574,6 +574,11 @@ def use_skill():
 
     if skill not in gs.human_hand:
         return jsonify({"error": "你没有这张技能卡"}), 400
+
+    # Frozen check
+    if gs.human_frozen:
+        return jsonify({"error": "你被冻住了，本回合不能使用技能 ❄️"}), 400
+
     gs.human_hand.remove(skill)
 
     msg = ""
