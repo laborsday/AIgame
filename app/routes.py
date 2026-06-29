@@ -528,7 +528,15 @@ def skill_move():
     ai_skill, sr, sc = ai_decide_skill(gs)
     if ai_skill is not None:
         gs.pending_skill = (ai_skill, "ai", sr, sc)
-        ai_skill_msg = f" AI 准备使用 {SKILL_NAMES.get(ai_skill, '技能')}！5秒内可用无懈可击反击"
+        taunts = [
+            "AI 正在酝酿一个大招…",
+            "AI：让我想想怎么整你 🤔",
+            "AI 偷偷摸了一张牌…",
+            "AI 邪魅一笑，打出了一张牌…",
+            "AI：这把你完了（才怪）",
+            "AI 手速飞快，你反应得过来吗？",
+        ]
+        ai_skill_msg = f" {random.choice(taunts)}"
     else:
         gs.pending_skill = None
 

@@ -71,6 +71,7 @@ const SkillGame = (function () {
     let animFrameId = null;
     let clickLocked = false;
     let hoverDrawPending = false;
+    let skillPending = false;  // skill is pending (waiting for counter/skip)
     let skillMode = null; // skill being used: 'feisha'|'toutian'|'jingru'|null
     let confettiParticles = [], confettiAnimId = null;
 
@@ -204,7 +205,7 @@ const SkillGame = (function () {
 
     // ── Events ─────────────────────────────────────────────────
     canvas.addEventListener("click", function(e) {
-        if (gameOver || clickLocked) return;
+        if (gameOver || clickLocked || skillPending) return;
         if (currentTurn !== humanColor && !skillMode) return;
         const rect = canvas.getBoundingClientRect();
         const sx = boardPixelSize/rect.width, sy = boardPixelSize/rect.height;
@@ -314,6 +315,7 @@ const SkillGame = (function () {
             updateHands();
             hideOverlay();
             stopConfetti();
+            skillPending = false;
             skillMode = null;
             document.getElementById("skill-active-msg").textContent = "";
             stoneScale = 1.0;
@@ -375,7 +377,11 @@ const SkillGame = (function () {
         updateHands();
         updateTurnBadge();
 
-        // Pending skill — show wuxie counter popup
+        // Pending skill
+        skillPending = !!data.pending_skill;
+        if (skillPending) currentTurn = 0; // lock board during pending
+
+        // Show wuxie counter popup
         if (data.pending_skill && data.pending_by_ai && humanHand.includes("wuxie")) {
             showCounterPopup(data.pending_skill);
         }
@@ -422,7 +428,7 @@ const SkillGame = (function () {
     }
 
     function activateSkill(skillKey) {
-        if (gameOver) return;
+        if (gameOver || skillPending) return;
         if (humanFrozen) { statusEl.textContent = "你被冻住了，不能使用技能 ❄️"; return; }
         // Check if this is a wuxie counter
         if (skillKey === "wuxie") {
@@ -441,9 +447,9 @@ const SkillGame = (function () {
 
     function showCounterPopup(skillKey) {
         const info = SKILL_INFO[skillKey] || { name: skillKey, emoji: "?" };
-        const msg = `AI 准备使用 ${info.emoji} ${info.name}！是否使用无懈可击？`;
-        statusEl.textContent = msg;
+        statusEl.textContent = `有情况！`;
         document.getElementById("skill-active-msg").textContent = "🛡️ 点击无懈可击反击！（5秒后自动跳过）";
+        skillPending = true; currentTurn = 0;
 
         // Auto-skip after 5 seconds
         if (counterTimer) clearTimeout(counterTimer);
@@ -451,6 +457,7 @@ const SkillGame = (function () {
             document.getElementById("skill-active-msg").textContent = "";
             const r = await fetch("/api/skip_counter", { method: "POST" });
             const d = await r.json();
+            skillPending = false;
             updateState(d);
             statusEl.textContent = d.message;
             if (d.status === "human_wins") endGame("win", d.message);
