@@ -12,6 +12,7 @@ from app.game.skill_rules import (
     SKILL_NAMES,
     SKILL_EMOJI,
     MAX_HP,
+    MAX_HAND_SIZE,
 )
 
 bp = Blueprint("main", __name__)
