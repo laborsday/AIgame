@@ -598,6 +598,15 @@ def use_skill():
     gs.pending_skill = (skill, "human", row, col)
     _save_skill_state(gs)
 
+    # AI wuxie check — hard mode AI counters if it has wuxie
+    ai_wuxie_msg = ""
+    if Skill.WU_XIE_KE_JI in gs.ai_hand and gs.difficulty in ("hard", "medium"):
+        gs.ai_hand.remove(Skill.WU_XIE_KE_JI)
+        gs.pending_skill = None
+        _save_skill_state(gs)
+        skill_name = SKILL_NAMES.get(skill, "技能")
+        return jsonify({**gs.to_dict(), "message": f"AI 使用无懈可击！抵消了你的 {skill_name} 🛡️", "status": "playing"})
+
     return jsonify(
         {**gs.to_dict(), "message": "等待对方反应...（5秒）", "status": "pending", "pending_timeout": 5}
     )
