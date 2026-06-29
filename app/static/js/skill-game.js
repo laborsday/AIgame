@@ -56,9 +56,11 @@ const SkillGame = (function () {
     // Canvas
     // ═══════════════════════════════════════════════════════════
     function resizeCanvas() {
-        const rightW = document.querySelector(".skill-right")?.clientWidth || window.innerWidth * 0.65;
-        const availH = window.innerHeight - 40;
-        const maxSize = Math.min(rightW - 16, availH, 640);
+        const wrapperW = document.querySelector(".skill-wrapper")?.clientWidth || 1000;
+        const leftW = document.querySelector(".skill-left")?.clientWidth || 220;
+        const rightW = wrapperW - leftW - 30;
+        const availH = window.innerHeight - 80;
+        const maxSize = Math.max(300, Math.min(rightW, availH, 620));
         const dpr = window.devicePixelRatio || 1;
         boardPixelSize = maxSize;
         canvas.width = boardPixelSize * dpr;
@@ -76,6 +78,7 @@ const SkillGame = (function () {
     window.addEventListener("resize", resizeCanvas);
 
     function draw() {
+        if (!boardPixelSize || boardPixelSize <= 0 || !padding || !cellSize) return;
         drawBoard();
         drawStones();
         drawMarkers();
@@ -429,15 +432,10 @@ const SkillGame = (function () {
 
     // ── Init ───────────────────────────────────────────────────
     if (window.__SOUND_ENABLED__ !== undefined && typeof SoundFX !== "undefined") SoundFX.setEnabled(window.__SOUND_ENABLED__);
-    document.getElementById("btn-new-game").addEventListener("click", newGame);
-    document.getElementById("btn-hint").addEventListener("click", async ()=>{
-        if(gameOver||currentTurn!==humanColor)return;
-        const r=await fetch("/api/skill_hint",{method:"POST"});
-        const d=await r.json();
-        if(d.row!==undefined) statusEl.textContent="提示: "+String.fromCharCode(65+d.col)+(d.row+1);
-    });
-    resizeCanvas();
-    setTimeout(newGame, 300);
+    const btnNew = document.getElementById("btn-new-game");
+    if (btnNew) btnNew.addEventListener("click", newGame);
+    // Defer to ensure layout is settled
+    setTimeout(() => { resizeCanvas(); setTimeout(newGame, 300); }, 150);
 
     return { newGame };
 })();
