@@ -12,6 +12,7 @@ const SkillGame = (function () {
 
     // DOM
     const canvas = document.getElementById("board-canvas");
+    if (!canvas) { console.error("skill-game: board-canvas not found!"); return { newGame: ()=>{} }; }
     const ctx = canvas.getContext("2d");
     const statusEl = document.getElementById("status-message");
     const overlay = document.getElementById("overlay");
