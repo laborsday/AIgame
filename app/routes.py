@@ -536,7 +536,7 @@ def skill_move():
             "AI：这把你完了（才怪）",
             "AI 手速飞快，你反应得过来吗？",
         ]
-        ai_skill_msg = f" {random.choice(taunts)}"
+        ai_skill_msg = f" {random.choice(taunts)}（AI使用技能中）"
     else:
         gs.pending_skill = None
 
