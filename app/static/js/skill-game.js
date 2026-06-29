@@ -2,6 +2,39 @@
  * 技能五子棋 — Skill Mode Frontend
  */
 
+// ═══════════════════════════════════════════════════════════════
+// Sound engine (Web Audio API) — shared with normal mode
+// ═══════════════════════════════════════════════════════════════
+const SoundFX = (function () {
+    let audioCtx = null;
+    let soundEnabled = true;
+    let placeSoundIndex = 0;
+    let placeSoundStepCount = 0;
+    const PLACE_SWITCH_EVERY = 4;
+
+    function ctx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+    }
+
+    const placerSounds = [
+        function () { const c=ctx(),t=c.currentTime; const o=c.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(800,t); const g=c.createGain(); g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.08); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.08); },
+        function () { const c=ctx(),t=c.currentTime; const o=c.createOscillator(); o.type="triangle"; o.frequency.setValueAtTime(1200,t); const g=c.createGain(); g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.15); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.15); },
+        function () { const c=ctx(),t=c.currentTime; const o=c.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(300,t); o.frequency.linearRampToValueAtTime(150,t+0.1); const g=c.createGain(); g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.12); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.12); },
+        function () { const c=ctx(),t=c.currentTime; const o=c.createOscillator(); o.type="square"; o.frequency.setValueAtTime(200,t); o.frequency.linearRampToValueAtTime(600,t+0.08); const g=c.createGain(); g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.15); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.15); },
+        function () { const c=ctx(),t=c.currentTime; const o=c.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(1000,t); const g=c.createGain(); g.gain.setValueAtTime(0.2,t); g.gain.setValueAtTime(0,t+0.05); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.05); },
+    ];
+
+    function playPlace() { if(!soundEnabled)return; try{placeSoundStepCount++;if(placeSoundStepCount%PLACE_SWITCH_EVERY===0)placeSoundIndex=(placeSoundIndex+1)%placerSounds.length;placerSounds[placeSoundIndex]();}catch(_){} }
+
+    function playWin() { if(!soundEnabled)return; try{const c=ctx(),t=c.currentTime;[523,659,784,1047].forEach((f,i)=>{const o=c.createOscillator();o.type="triangle";o.frequency.setValueAtTime(f,t+i*0.15);const g=c.createGain();g.gain.setValueAtTime(0.2,t+i*0.15);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.15+0.3);o.connect(g);g.connect(c.destination);o.start(t+i*0.15);o.stop(t+i*0.15+0.3);});}catch(_){} }
+
+    function playLose() { if(!soundEnabled)return; try{const c=ctx(),t=c.currentTime;[400,350,280,180].forEach((f,i)=>{const o=c.createOscillator();o.type=i===3?"square":"sawtooth";o.frequency.setValueAtTime(f,t+i*0.2);const g=c.createGain();g.gain.setValueAtTime(0.15,t+i*0.2);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.2+0.4);o.connect(g);g.connect(c.destination);o.start(t+i*0.2);o.stop(t+i*0.2+0.4);});}catch(_){} }
+
+    return { playPlace, playWin, playLose, setEnabled: function(v){soundEnabled=v;}, isEnabled: function(){return soundEnabled;} };
+})();
+
 const SkillGame = (function () {
     "use strict";
 
@@ -220,7 +253,7 @@ const SkillGame = (function () {
             lastHumanMove = [row, col];
             statusEl.textContent = "AI 思考中...";
             draw();
-            if (typeof SoundFX !== "undefined") SoundFX.playPlace();
+            SoundFX.playPlace();
 
             const resp = await fetch("/api/skill_move", {
                 method: "POST",
@@ -439,8 +472,8 @@ const SkillGame = (function () {
     function endGame(type, msg) {
         gameOver = true; currentTurn = 0;
         statusEl.textContent = msg;
-        if (type === "win") { if (typeof SoundFX !== "undefined") SoundFX.playWin(); setTimeout(()=>showOverlay("win",msg), 600); }
-        else if (type==="lose") { if (typeof SoundFX !== "undefined") SoundFX.playLose(); setTimeout(()=>showOverlay("lose",msg), 600); }
+        if (type === "win") { SoundFX.playWin(); setTimeout(()=>showOverlay("win",msg), 600); }
+        else if (type==="lose") { SoundFX.playLose(); setTimeout(()=>showOverlay("lose",msg), 600); }
         else { setTimeout(()=>showOverlay("draw",msg), 600); }
     }
 
@@ -499,7 +532,7 @@ const SkillGame = (function () {
     }
 
     // ── Init ───────────────────────────────────────────────────
-    if (window.__SOUND_ENABLED__ !== undefined && typeof SoundFX !== "undefined") SoundFX.setEnabled(window.__SOUND_ENABLED__);
+    if (window.__SOUND_ENABLED__ !== undefined) SoundFX.setEnabled(window.__SOUND_ENABLED__);
     const btnNew = document.getElementById("btn-new-game");
     if (btnNew) btnNew.addEventListener("click", newGame);
     // Defer to ensure layout is settled
