@@ -55,7 +55,9 @@ const SkillGame = (function () {
     // Canvas
     // ═══════════════════════════════════════════════════════════
     function resizeCanvas() {
-        const maxSize = Math.min(window.innerWidth * 0.55, window.innerHeight - 60, 550);
+        const rightW = document.querySelector(".skill-right")?.clientWidth || window.innerWidth * 0.65;
+        const availH = window.innerHeight - 40;
+        const maxSize = Math.min(rightW - 16, availH, 640);
         const dpr = window.devicePixelRatio || 1;
         boardPixelSize = maxSize;
         canvas.width = boardPixelSize * dpr;
@@ -214,7 +216,7 @@ const SkillGame = (function () {
             lastHumanMove = [row, col];
             statusEl.textContent = "AI 思考中...";
             draw();
-            SoundFX.playPlace();
+            if (typeof SoundFX !== "undefined") SoundFX.playPlace();
 
             const resp = await fetch("/api/skill_move", {
                 method: "POST",
@@ -365,8 +367,8 @@ const SkillGame = (function () {
     function endGame(type, msg) {
         gameOver = true; currentTurn = 0;
         statusEl.textContent = msg;
-        if (type === "win") { SoundFX.playWin(); setTimeout(()=>showOverlay("win",msg), 600); }
-        else if (type==="lose") { SoundFX.playLose(); setTimeout(()=>showOverlay("lose",msg), 600); }
+        if (type === "win") { if (typeof SoundFX !== "undefined") SoundFX.playWin(); setTimeout(()=>showOverlay("win",msg), 600); }
+        else if (type==="lose") { if (typeof SoundFX !== "undefined") SoundFX.playLose(); setTimeout(()=>showOverlay("lose",msg), 600); }
         else { setTimeout(()=>showOverlay("draw",msg), 600); }
     }
 
@@ -425,7 +427,7 @@ const SkillGame = (function () {
     }
 
     // ── Init ───────────────────────────────────────────────────
-    if (window.__SOUND_ENABLED__ !== undefined) SoundFX.setEnabled(window.__SOUND_ENABLED__);
+    if (window.__SOUND_ENABLED__ !== undefined && typeof SoundFX !== "undefined") SoundFX.setEnabled(window.__SOUND_ENABLED__);
     document.getElementById("btn-new-game").addEventListener("click", newGame);
     document.getElementById("btn-hint").addEventListener("click", async ()=>{
         if(gameOver||currentTurn!==humanColor)return;
