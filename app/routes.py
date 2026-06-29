@@ -610,6 +610,7 @@ def use_skill():
     ai_wuxie_msg = ""
     if Skill.WU_XIE_KE_JI in gs.ai_hand and gs.difficulty in ("hard", "medium"):
         gs.ai_hand.remove(Skill.WU_XIE_KE_JI)
+        gs.human_hand.remove(skill)  # consume the countered skill too
         gs.pending_skill = None
         _save_skill_state(gs)
         skill_name = SKILL_NAMES.get(skill, "技能")
@@ -678,9 +679,12 @@ def counter_skill():
     countered_skill, user, _row, _col = gs.pending_skill
     gs.pending_skill = None
 
-    # If it was AI's skill, AI's card is refunded
+    # Consume the countered skill card from the opponent
     if user == "ai":
-        # don't refund — AI already "spent" it mentally, just cancel
+        if countered_skill in gs.ai_hand:
+            gs.ai_hand.remove(countered_skill)
+    else:
+        # (human's skill countered by AI — handled in use_skill already)
         pass
 
     gs.human_hand.remove(Skill.WU_XIE_KE_JI)
